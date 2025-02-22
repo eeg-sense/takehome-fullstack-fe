@@ -1,89 +1,130 @@
-# **Real-Time Data Visualization Dashboard**
+## Real-Time Data Visualization Dashboard
 
-## **Overview**  
-This project is a take-home assignment where you will build a real-time web-based application that visualizes streaming data. The application will consist of:
+### Overview
 
-- **A backend server** that receives floating-point data from a TCP stream at **100 samples/sec** (each sample has 10 values, one per channel).
-- **A frontend client** that renders this data live on a line chart, displaying the last 30 seconds of data.
+This project is a real-time data visualization dashboard that processes high-frequency data streams using WebSockets and
+Web Workers for efficient rendering. The system consists of a **TCP server** receiving data, a **Node.js backend**
+broadcasting data over **Socket.IO**, and a **React frontend** utilizing a **Web Worker** to handle intensive
+computations.
 
-Your task is to design and implement a working solution, making decisions around data handling, communication between the client and server, and frontend state management.
+### Features
 
-*We do not ask you to invest more than **4 hours** in this project. Focus on delivering value, and clearly label the code where you would have done things differently if you had a week to complete the task.*
+- Real-time chart rendering using **Recharts**.
 
-It's OK to use AI - see [below](#generative-ai).
+- Web Worker for **offloading processing tasks** (downsampling, buffering).
 
-### **If you have extra time (Optional Enhancements)**  
-If time permits, add a **second chart** that displays a **moving average over the past 1 second (100 samples)** for each channel.
+- Moving average chart for **smoothed data visualization**.
 
----
+- Optimized WebSocket communication to ensure **minimal performance overhead**.
 
-## **Requirements**  
+### Getting Started
 
-### Backend
-- The backend should receive the incoming data stream.
-- It should provide a way for the frontend to access this real-time data efficiently.
-- The backend can be implemented in the language you know best. At brain.space we use Python (w/FastAPI), but you can implement with any technology.
+#### Prerequisites
 
-### Frontend
-- The frontend should display 10 real-time lines on a single chart, with:  
-  - **X-axis:** Time  
-  - **Y-axis:** Value (one line per channel, 0-9)  
-- The chart should update continuously as new data arrives, showing only the **last 30 seconds** of data.
-- The frontend should retrieve and manage data from the backend in a performant way.
-- The dashboard should ideally be implemented with **React**.
+- **Node.js** (v18+)
 
-### **Extra Credit (Optional)**  
-- Add a **second chart** that displays a **1-second moving average** for each channel.
-- Decide where and how to compute the moving average while keeping performance optimal.
-- Add any other cool features you think might be nice, either fully implementing them or adding a placeholder and comments.
+- **npm** or **yarn**
 
-### <a name="generative-ai"></a>Generative AI
+#### Installation
 
-You can use generative AI to help you with the project, but if so, **please share the relevant chats** with a public link or screenshot/download.
+```
+# Clone the repository
+git clone 
 
----
 
-## **Setup Instructions**  
+# Install dependencies
+cd backend && npm install 
+cd frontend && npm install 
 
-### For and Clone the Repository**  
-Fork this repository and clone it to your local machine:
-```sh
-$ git clone https://github.com/YOUR_USERNAME/takehome-fullstack-fe.git
-$ cd takehome-fullstack-fe
 ```
 
-### Run the mock data generator
-```sh
+#### Running the Project
+
+```
+# Run the mock data generator 
 node datagen.js
+# Start the backend server
+cd backend
+npm run dev
+
+# Start the frontend app
+cd frontend
+npm start
 ```
 
-You can test the datagen server by running:
-```sh
-telnet localhost 9000
-```
+The backend will listen on **port 3000**, and the frontend will be available at [**http://localhost:5713
+**](http://localhost:5713).
 
----
+#### WebSocket Events
 
-## **Deliverables**  
-1. Access to forked repository, containing a `README.md` with updated instructions.
-1. A **short design document** (can be a markdown file in the repo) covering:
-   - Architecture choices (data handling, communication, rendering strategy).
-   - Challenges faced and trade-offs made due to time constraints.
-   - What you'd improve or do differently with more time.
----
+- **initialData** → Sent to new clients when they connect.
 
-## **Discussion Topics for the Interview**  
-After completing the assignment, we’ll discuss:
-- **Backend Design:** How did you handle the data stream? How does the backend communicate with the frontend?
-- **Frontend Architecture:** How does the frontend manage state and performance while rendering real-time data?
-- **Performance Optimizations:** How does the system scale with a higher sampling rate or more channels?
-- **Trade-offs & Improvements:** What challenges did you face, and how would you improve the system?
+- **data** → Sent every 5 seconds, containing raw and moving average values.
 
----
+#### Worker Processing
 
-## **Next Steps**  
-1. Clone the provided repo and set up your development environment.
-2. Implement the backend and frontend as described.
-3. Submit your forked repository with your code and documentation.
+The **Web Worker** processes data by:
 
-Good luck! 🚀
+1. **Buffering** the last 30 seconds of data.
+
+2. **Downsampling** (reducing data points for better performance).
+
+3. **Computing moving averages** for smoother visualization.
+
+----------
+
+## Architecture Choices
+
+### Data Handling
+
+- **TCP Stream** (100 samples/sec) → Buffered in **Node.js**
+
+- **Node.js Server** processes, buffers, and sends data via **WebSocket (every 5s)**
+
+- **Web Worker** in the frontend **downsamples** and calculates **moving averages**
+
+- **React UI** renders charts using **Recharts** for efficient updates
+
+### Communication
+
+- **TCP → Node.js**: Raw data stream processing
+
+- **Node.js → React (Socket.IO)**: Periodic updates to avoid excessive rendering
+
+- **React → Web Worker**: Offloads heavy calculations from the UI thread
+
+### Rendering Strategy
+
+- **Recharts for efficient graph rendering**
+
+- **Only latest 30s of data kept** in state to reduce memory footprint
+
+- **Moving average computed every second** for smooth visualization
+
+## Challenges & Trade-offs
+
+### Challenges
+
+- **Handling high-frequency data (100 samples/sec) without UI lag**
+
+- **Ensuring smooth, real-time updates without excessive WebSocket traffic**
+
+- **Preventing memory leaks with large buffers**
+
+### Trade-offs
+
+- **Batching updates every 5s** reduces network traffic but adds slight delay
+
+- **Web Worker processing** offloads UI but adds minor serialization overhead
+
+- **Moving average window size (10 samples)** balances smoothness vs. responsiveness
+
+## Future Improvements
+
+- **More interactive UI** (zooming, filtering data per channel)
+
+- **Customizable downsampling and moving average window size**
+
+- **Scalability improvements for handling more channels & users**
+
+- **Backend optimizations** (using streams instead of storing full history in memory)
