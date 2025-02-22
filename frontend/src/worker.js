@@ -43,7 +43,6 @@ self.onmessage = function (event) {
                 }
             });
         });
-        console.log('buffer: ', buffer)
         // Perform downsampling by computing the average over BUFFER_SIZE samples
         const downsampled = buffer.map((channelData) => {
             const downsampledData = [];
